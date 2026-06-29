@@ -72,7 +72,7 @@ export function loadConfig(): AppConfig {
     search: {
       trip: optional('TTANG_TRIP', 'RT'),
       gubun: optional('TTANG_GUBUN', 'L'),
-      departWithinDays: int('TTANG_DEPART_WITHIN_DAYS', 2),
+      departWithinDays: int('TTANG_DEPART_WITHIN_DAYS', 3),
       adt: int('TTANG_ADT', 1),
     },
     cronSchedule: optional('CRON_SCHEDULE', '0 0,9,12,17,21 * * *'),
