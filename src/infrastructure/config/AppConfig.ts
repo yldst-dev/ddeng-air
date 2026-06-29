@@ -75,7 +75,7 @@ export function loadConfig(): AppConfig {
       departWithinDays: int('TTANG_DEPART_WITHIN_DAYS', 3),
       adt: int('TTANG_ADT', 1),
     },
-    cronSchedule: optional('CRON_SCHEDULE', '0 0,9,12,17,21 * * *'),
+    cronSchedule: optional('CRON_SCHEDULE', '0 * * * *'),
     runOnStart: bool('RUN_ON_START', false),
     timezone: optional('TZ', 'Asia/Seoul'),
     databasePath: optional('DATABASE_PATH', './data/listings.db'),
