@@ -52,7 +52,7 @@ cp .env.example .env
 npm install
 npm run build
 
-# 내장 스케줄러로 상시 구동 (CRON_SCHEDULE 기본: 매일 09,12,17시)
+# 내장 스케줄러로 상시 구동 (CRON_SCHEDULE 기본: 매일 00,09,12,17,21시)
 npm start
 
 # 또는 1회만 실행 (시스템 cron / launchd 에서 호출)
@@ -62,7 +62,7 @@ npm run sync:once
 ### 시스템 cron 예시
 
 ```cron
-0 9,12,17 * * *  cd /path/to/ddeng-air && /usr/bin/node dist/main/runOnce.js >> run.log 2>&1
+0 0,9,12,17,21 * * *  cd /path/to/ddeng-air && /usr/bin/node dist/main/runOnce.js >> run.log 2>&1
 ```
 
 ## Dokploy 배포
