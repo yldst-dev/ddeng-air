@@ -4,6 +4,7 @@ import Database from 'better-sqlite3';
 import type { Listing } from '../../domain/entities/Listing.js';
 import type { StoredListing, ListingStatus } from '../../domain/entities/StoredListing.js';
 import type { ListingRepository, SyncPlan } from '../../domain/ports/ListingRepository.js';
+import type { SentMessage, SentMessageStore } from '../../domain/ports/SentMessageStore.js';
 
 interface Row {
   fare_key: string;
@@ -27,7 +28,7 @@ interface Row {
   payload: string;
 }
 
-export class SqliteListingRepository implements ListingRepository {
+export class SqliteListingRepository implements ListingRepository, SentMessageStore {
   private readonly db: Database.Database;
 
   constructor(databasePath: string) {
@@ -68,9 +69,37 @@ export class SqliteListingRepository implements ListingRepository {
         observed_at TEXT NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS sent_messages (
+        fare_key TEXT NOT NULL,
+        chat_id TEXT NOT NULL,
+        message_id INTEGER NOT NULL,
+        PRIMARY KEY (fare_key, chat_id)
+      );
+
       CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
       CREATE INDEX IF NOT EXISTS idx_history_key ON price_history(fare_key);
     `);
+  }
+
+  save(fareKey: string, chatId: string, messageId: number): void {
+    this.db
+      .prepare(
+        `INSERT INTO sent_messages (fare_key, chat_id, message_id)
+         VALUES (?, ?, ?)
+         ON CONFLICT(fare_key, chat_id) DO UPDATE SET message_id = excluded.message_id`,
+      )
+      .run(fareKey, chatId, messageId);
+  }
+
+  findByFareKey(fareKey: string): SentMessage[] {
+    const rows = this.db
+      .prepare(`SELECT chat_id, message_id FROM sent_messages WHERE fare_key = ?`)
+      .all(fareKey) as { chat_id: string; message_id: number }[];
+    return rows.map((r) => ({ chatId: r.chat_id, messageId: r.message_id }));
+  }
+
+  deleteByFareKey(fareKey: string): void {
+    this.db.prepare(`DELETE FROM sent_messages WHERE fare_key = ?`).run(fareKey);
   }
 
   loadActive(): StoredListing[] {

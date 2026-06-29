@@ -21,7 +21,7 @@ export function createContainer(): Container {
 
   const source = new TtangFlightSource();
   const repository = new SqliteListingRepository(config.databasePath);
-  const notifier = new TelegramNotifier(config.telegram, logger);
+  const notifier = new TelegramNotifier(config.telegram, repository, logger);
 
   const useCase = new SyncListingsUseCase(
     source,
