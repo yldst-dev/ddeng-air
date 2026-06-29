@@ -20,6 +20,7 @@ services:
       NOTIFY_ON_PRICE_UP: "${NOTIFY_ON_PRICE_UP:-true}"
       NOTIFY_ON_SOLD_OUT: "${NOTIFY_ON_SOLD_OUT:-true}"
       SEND_INTERVAL_MS: "${SEND_INTERVAL_MS:-1200}"
+      LOUD_MAX_PRICE: "${LOUD_MAX_PRICE:-250000}"
       DRY_RUN: "${DRY_RUN:-false}"
     volumes:
       - ddeng-air-data:/app/data

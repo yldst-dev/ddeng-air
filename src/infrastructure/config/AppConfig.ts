@@ -7,6 +7,7 @@ export interface AppConfig {
     readonly allowedChatIds: readonly string[];
     readonly sendIntervalMs: number;
     readonly dryRun: boolean;
+    readonly loudMaxPrice: number;
   };
   readonly search: {
     readonly trip: string;
@@ -66,6 +67,7 @@ export function loadConfig(): AppConfig {
       allowedChatIds,
       sendIntervalMs: int('SEND_INTERVAL_MS', 1200),
       dryRun: bool('DRY_RUN', false),
+      loudMaxPrice: int('LOUD_MAX_PRICE', 250000),
     },
     search: {
       trip: optional('TTANG_TRIP', 'RT'),

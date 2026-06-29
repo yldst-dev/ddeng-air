@@ -8,6 +8,7 @@ export interface TelegramOptions {
   readonly allowedChatIds: readonly string[];
   readonly sendIntervalMs: number;
   readonly dryRun: boolean;
+  readonly loudMaxPrice: number;
 }
 
 export class TelegramNotifier implements Notifier {
@@ -27,17 +28,24 @@ export class TelegramNotifier implements Notifier {
         ? undefined
         : { inline_keyboard: [[{ text: '예약하러 가기', url: bookingUrl }]] };
 
+    const silent = change.listing.price > this.options.loudMaxPrice;
+
     for (const chatId of this.allowed) {
-      await this.send(chatId, text, replyMarkup);
+      await this.send(chatId, text, replyMarkup, silent);
       if (this.options.sendIntervalMs > 0) {
         await sleep(this.options.sendIntervalMs);
       }
     }
   }
 
-  private async send(chatId: string, text: string, replyMarkup: unknown): Promise<void> {
+  private async send(
+    chatId: string,
+    text: string,
+    replyMarkup: unknown,
+    silent: boolean,
+  ): Promise<void> {
     if (this.options.dryRun) {
-      this.logger.info(`[DRY_RUN] -> ${chatId}\n${text}`);
+      this.logger.info(`[DRY_RUN]${silent ? '(무음)' : '(알림)'} -> ${chatId}\n${text}`);
       return;
     }
 
@@ -50,6 +58,7 @@ export class TelegramNotifier implements Notifier {
         text,
         parse_mode: 'HTML',
         disable_web_page_preview: true,
+        disable_notification: silent,
         ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
       }),
     });
