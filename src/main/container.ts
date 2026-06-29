@@ -30,6 +30,7 @@ export function createContainer(): Container {
     clock,
     config.policy,
     logger,
+    config.telegram.dryRun,
   );
 
   return {

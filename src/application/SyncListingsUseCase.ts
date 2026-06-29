@@ -31,6 +31,7 @@ export class SyncListingsUseCase {
     private readonly clock: Clock,
     private readonly policy: NotifyPolicy,
     private readonly logger: Logger,
+    private readonly dryRun: boolean,
   ) {}
 
   async execute(criteria: SearchCriteria): Promise<SyncSummary> {
@@ -57,7 +58,11 @@ export class SyncListingsUseCase {
       }
     }
 
-    this.repository.applySync(plan, this.clock.nowIso());
+    if (this.dryRun) {
+      this.logger.info('DRY_RUN=true: DB 저장을 건너뜁니다.');
+    } else {
+      this.repository.applySync(plan, this.clock.nowIso());
+    }
 
     return { fetched: current.length, notified, counts };
   }
