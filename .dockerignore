@@ -1,0 +1,12 @@
+node_modules
+dist
+data
+*.db
+*.db-*
+.env
+*.log
+.git
+.gitignore
+.DS_Store
+README.md
+.playwright-mcp

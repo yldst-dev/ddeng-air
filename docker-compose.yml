@@ -1,0 +1,27 @@
+services:
+  ddang-air:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      TZ: "${TZ:-Asia/Seoul}"
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+      TELEGRAM_ALLOWED_CHAT_IDS: "${TELEGRAM_ALLOWED_CHAT_IDS}"
+      TTANG_TRIP: "${TTANG_TRIP:-RT}"
+      TTANG_GUBUN: "${TTANG_GUBUN:-L}"
+      TTANG_DEPART_WITHIN_DAYS: "${TTANG_DEPART_WITHIN_DAYS:-2}"
+      TTANG_ADT: "${TTANG_ADT:-1}"
+      CRON_SCHEDULE: "${CRON_SCHEDULE:-0 9,12,17 * * *}"
+      DATABASE_PATH: "/app/data/listings.db"
+      NOTIFY_ON_NEW: "${NOTIFY_ON_NEW:-true}"
+      NOTIFY_ON_PRICE_DOWN: "${NOTIFY_ON_PRICE_DOWN:-true}"
+      NOTIFY_ON_PRICE_UP: "${NOTIFY_ON_PRICE_UP:-true}"
+      NOTIFY_ON_SOLD_OUT: "${NOTIFY_ON_SOLD_OUT:-true}"
+      SEND_INTERVAL_MS: "${SEND_INTERVAL_MS:-1200}"
+      DRY_RUN: "${DRY_RUN:-false}"
+    volumes:
+      - ddang-air-data:/app/data
+
+volumes:
+  ddang-air-data:

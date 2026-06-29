@@ -1,0 +1,28 @@
+{
+  "name": "ddang-air",
+  "version": "1.0.0",
+  "description": "땡처리닷컴 3일 이내 출발 항공권 변동을 감지해 텔레그램으로 알리는 봇",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main/schedule.js",
+    "dev": "tsx src/main/schedule.ts",
+    "sync:once": "tsx src/main/runOnce.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "dotenv": "^16.4.7",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
