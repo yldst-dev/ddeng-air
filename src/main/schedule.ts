@@ -23,19 +23,25 @@ async function runCycle(): Promise<void> {
   }
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const logger = new ConsoleLogger();
   const container = createContainer();
   const schedule = container.config.cronSchedule;
   const timezone = container.config.timezone;
+  const runOnStart = container.config.runOnStart;
   container.repository.close();
 
   if (!cron.validate(schedule)) {
     throw new Error(`잘못된 CRON_SCHEDULE: ${schedule}`);
   }
 
+  if (runOnStart) {
+    logger.info('RUN_ON_START=true: 시작 즉시 1회 실행합니다.');
+    await runCycle();
+  }
+
   cron.schedule(schedule, () => void runCycle(), { timezone });
   logger.info(`스케줄러 시작: "${schedule}" (${timezone}). 다음 주기를 대기합니다.`);
 }
 
-main();
+void main();
