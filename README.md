@@ -1,4 +1,4 @@
-# ddang-air
+# ddeng-air
 
 땡처리닷컴 "3일 이내 출발" 항공권을 매일 정해진 시각에 수집하여, 신규/가격하락/가격상승/마감 변동을 텔레그램으로 알리는 봇.
 
@@ -62,7 +62,7 @@ npm run sync:once
 ### 시스템 cron 예시
 
 ```cron
-0 9,12,17 * * *  cd /path/to/ddang-air && /usr/bin/node dist/main/runOnce.js >> run.log 2>&1
+0 9,12,17 * * *  cd /path/to/ddeng-air && /usr/bin/node dist/main/runOnce.js >> run.log 2>&1
 ```
 
 ## Dokploy 배포
@@ -78,7 +78,7 @@ SQLite 파일이 재배포 후에도 유지되도록 영속 볼륨이 반드시 
 3. Environment 탭에 변수 입력 (`.env.example` 참고):
    - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_CHAT_IDS` 는 필수
    - 나머지는 비워두면 compose 의 기본값이 적용된다
-4. 배포한다. `ddang-air-data` 명명 볼륨이 `/app/data` 에 마운트되어 DB 가 보존된다.
+4. 배포한다. `ddeng-air-data` 명명 볼륨이 `/app/data` 에 마운트되어 DB 가 보존된다.
 
 ### 방법 B — Application (Dockerfile)
 
@@ -90,8 +90,8 @@ SQLite 파일이 재배포 후에도 유지되도록 영속 볼륨이 반드시 
 ### 로컬에서 동일 환경 확인
 
 ```bash
-docker build -t ddang-air .
-docker run --rm --env-file .env -v ddang-air-data:/app/data ddang-air
+docker build -t ddeng-air .
+docker run --rm --env-file .env -v ddeng-air-data:/app/data ddeng-air
 ```
 
 ## 그룹 채팅 ID 확인

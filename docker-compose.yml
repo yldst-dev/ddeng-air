@@ -1,5 +1,5 @@
 services:
-  ddang-air:
+  ddeng-air:
     build:
       context: .
       dockerfile: Dockerfile
@@ -21,7 +21,7 @@ services:
       SEND_INTERVAL_MS: "${SEND_INTERVAL_MS:-1200}"
       DRY_RUN: "${DRY_RUN:-false}"
     volumes:
-      - ddang-air-data:/app/data
+      - ddeng-air-data:/app/data
 
 volumes:
-  ddang-air-data:
+  ddeng-air-data:

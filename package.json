@@ -1,5 +1,5 @@
 {
-  "name": "ddang-air",
+  "name": "ddeng-air",
   "version": "1.0.0",
   "description": "땡처리닷컴 3일 이내 출발 항공권 변동을 감지해 텔레그램으로 알리는 봇",
   "type": "module",
