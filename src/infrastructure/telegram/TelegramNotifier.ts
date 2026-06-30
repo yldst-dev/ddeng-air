@@ -26,20 +26,44 @@ export class TelegramNotifier implements Notifier {
   async notify(change: ListingChange): Promise<void> {
     if (change.kind === 'SOLD_OUT') {
       await this.notifyClosed(change);
+    } else if (change.kind === 'NEW') {
+      await this.notifyNew(change);
     } else {
-      await this.notifyActive(change);
+      await this.notifyUpdate(change);
     }
   }
 
-  private async notifyActive(change: ListingChange): Promise<void> {
+  private async notifyNew(change: ListingChange): Promise<void> {
     const { text, bookingUrl } = formatChange(change);
-    const replyMarkup = { inline_keyboard: [[{ text: '예약하러 가기', url: bookingUrl }]] };
+    const replyMarkup = bookingMarkup(bookingUrl);
     const silent = this.isSilent(change);
 
     for (const chatId of this.allowed) {
       const messageId = await this.sendMessage(chatId, text, replyMarkup, silent);
       if (messageId !== null) {
         this.store.save(change.listing.fareKey, chatId, messageId);
+      }
+      await this.throttle();
+    }
+  }
+
+  private async notifyUpdate(change: ListingChange): Promise<void> {
+    const { text, bookingUrl } = formatChange(change);
+    const replyMarkup = bookingMarkup(bookingUrl);
+    const silent = this.isSilent(change);
+    const byChat = new Map(
+      this.store.findByFareKey(change.listing.fareKey).map((m) => [m.chatId, m.messageId]),
+    );
+
+    for (const chatId of this.allowed) {
+      const messageId = byChat.get(chatId);
+      const edited =
+        messageId !== undefined && (await this.editMessage(chatId, messageId, text, replyMarkup));
+      if (!edited) {
+        const newId = await this.sendMessage(chatId, text, replyMarkup, silent);
+        if (newId !== null) {
+          this.store.save(change.listing.fareKey, chatId, newId);
+        }
       }
       await this.throttle();
     }
@@ -91,6 +115,38 @@ export class TelegramNotifier implements Notifier {
     return json.result?.message_id ?? null;
   }
 
+  private async editMessage(
+    chatId: string,
+    messageId: number,
+    text: string,
+    replyMarkup: unknown,
+  ): Promise<boolean> {
+    if (this.options.dryRun) {
+      this.logger.info(`[DRY_RUN] edit -> ${chatId}#${messageId}\n${text}`);
+      return true;
+    }
+
+    const res = await fetch(`https://api.telegram.org/bot${this.options.botToken}/editMessageText`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+        ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
+      }),
+    });
+
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '');
+      this.logger.error(`메시지 수정 실패 (chat ${chatId}#${messageId}), 새 메시지로 대체`, detail);
+      return false;
+    }
+    return true;
+  }
+
   private async deleteMessage(chatId: string, messageId: number): Promise<void> {
     if (this.options.dryRun) {
       this.logger.info(`[DRY_RUN] delete -> ${chatId}#${messageId}`);
@@ -114,6 +170,10 @@ export class TelegramNotifier implements Notifier {
       await sleep(this.options.sendIntervalMs);
     }
   }
+}
+
+function bookingMarkup(url: string): unknown {
+  return { inline_keyboard: [[{ text: '예약하러 가기', url }]] };
 }
 
 function sleep(ms: number): Promise<void> {
