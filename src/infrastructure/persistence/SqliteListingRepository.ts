@@ -69,24 +69,34 @@ export class SqliteListingRepository implements ListingRepository, SentMessageSt
         observed_at TEXT NOT NULL
       );
 
-      CREATE TABLE IF NOT EXISTS sent_messages (
-        fare_key TEXT NOT NULL,
-        chat_id TEXT NOT NULL,
-        message_id INTEGER NOT NULL,
-        PRIMARY KEY (fare_key, chat_id)
-      );
-
       CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
       CREATE INDEX IF NOT EXISTS idx_history_key ON price_history(fare_key);
+    `);
+
+    const cols = this.db
+      .prepare(`PRAGMA table_info(sent_messages)`)
+      .all() as { name: string }[];
+    const hasLegacySchema = cols.length > 0 && !cols.some((c) => c.name === 'id');
+    if (hasLegacySchema) {
+      this.db.exec(`DROP TABLE sent_messages`);
+    }
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS sent_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fare_key TEXT NOT NULL,
+        chat_id TEXT NOT NULL,
+        message_id INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_sent_fare ON sent_messages(fare_key);
     `);
   }
 
   save(fareKey: string, chatId: string, messageId: number): void {
     this.db
       .prepare(
-        `INSERT INTO sent_messages (fare_key, chat_id, message_id)
-         VALUES (?, ?, ?)
-         ON CONFLICT(fare_key, chat_id) DO UPDATE SET message_id = excluded.message_id`,
+        `INSERT INTO sent_messages (fare_key, chat_id, message_id) VALUES (?, ?, ?)`,
       )
       .run(fareKey, chatId, messageId);
   }

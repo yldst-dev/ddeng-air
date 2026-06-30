@@ -46,23 +46,9 @@ export class TelegramNotifier implements Notifier {
   }
 
   private async notifyClosed(change: ListingChange): Promise<void> {
-    const { text } = formatChange(change);
-    const silent = this.isSilent(change);
     const stored = this.store.findByFareKey(change.listing.fareKey);
-
-    if (stored.length === 0) {
-      for (const chatId of this.allowed) {
-        await this.sendMessage(chatId, text, undefined, silent);
-        await this.throttle();
-      }
-      return;
-    }
-
     for (const { chatId, messageId } of stored) {
-      const edited = await this.editMessage(chatId, messageId, text);
-      if (!edited) {
-        await this.sendMessage(chatId, text, undefined, silent);
-      }
+      await this.deleteMessage(chatId, messageId);
       await this.throttle();
     }
     this.store.deleteByFareKey(change.listing.fareKey);
@@ -105,31 +91,22 @@ export class TelegramNotifier implements Notifier {
     return json.result?.message_id ?? null;
   }
 
-  private async editMessage(chatId: string, messageId: number, text: string): Promise<boolean> {
+  private async deleteMessage(chatId: string, messageId: number): Promise<void> {
     if (this.options.dryRun) {
-      this.logger.info(`[DRY_RUN] edit -> ${chatId}#${messageId}\n${text}`);
-      return true;
+      this.logger.info(`[DRY_RUN] delete -> ${chatId}#${messageId}`);
+      return;
     }
 
-    const res = await fetch(`https://api.telegram.org/bot${this.options.botToken}/editMessageText`, {
+    const res = await fetch(`https://api.telegram.org/bot${this.options.botToken}/deleteMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        message_id: messageId,
-        text,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-        reply_markup: { inline_keyboard: [] },
-      }),
+      body: JSON.stringify({ chat_id: chatId, message_id: messageId }),
     });
 
     if (!res.ok) {
       const detail = await res.text().catch(() => '');
-      this.logger.error(`메시지 수정 실패 (chat ${chatId}#${messageId}), 새 메시지로 대체`, detail);
-      return false;
+      this.logger.error(`메시지 삭제 실패 (chat ${chatId}#${messageId})`, detail);
     }
-    return true;
   }
 
   private async throttle(): Promise<void> {
